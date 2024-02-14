@@ -24,11 +24,16 @@
 # include <errno.h>
 # include "./libft/libft.h"
 
-# define ERR_ARG "Incorrect nbr of commands"
+# define ERR_ARG "Incorrect nbr of commands\n"
 # define ERR_ACCESS "Bad access"
 # define ERR_PIPE "Error creating pipe"
 # define ERR_FORK "Error in fork"
-
+# define ERR_DUP2 "Error in dup2"
+# define ERR_CLS "Error in close"
+# define ERR_PATH "Error, environment variable PATH not found"
+# define ERR_MALLOC "Error allocating memory"
+# define ERR_CMD "Error, command not found"
+# define ERR_EXC "Error with execve"
 
 typedef struct s_pipex
 {
@@ -50,10 +55,12 @@ int main(int argc, char **argv, char *envp[]);
 int errors(char *error, int argc);
 
 /**** CHILDS *****/
-void	first_child(t_pipex *pipex, char **argv, char *envp[]);
-void	second_child(t_pipex *pipex, char **argv, char *envp[]);
+void	first_child(t_pipex *pipex, char **argv, char *envp[], int argc);
+void	second_child(t_pipex *pipex, char **argv, char *envp[], int argc);
 
-/**** FREE && CLOSE ***/
-void	free_and_close(t_pipex *pipex);
+/**** AUX *****/
+char	*paths(char *envp[]);
+
+void	print(char **str);
 
 #endif

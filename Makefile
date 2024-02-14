@@ -14,7 +14,7 @@ NAME = pipex
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -g -fsanitize=address
 
-SRC = main.c childs.c freemem.c
+SRC = main.c childs.c aux.c
 OBJ = $(SRC:.c=.o)
 
 SRC_LIBFT = ./libft/libft.a

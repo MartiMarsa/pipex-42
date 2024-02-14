@@ -15,21 +15,40 @@
 int errors(char *error, int argc);
 static void	access_checks(t_pipex *pipex, char **argv, int argc);
 static void	forking(t_pipex *pipex, char **argv, char *envp[], int argc);
-static void	close_pipes(t_pipex *pipex);
+static void	free_and_close(t_pipex *pipex);
+
+void	print(char **str)
+{
+	int	i;
+
+	i = 0;
+	while (str[i])
+	{	
+		printf("elemento %i: %s\n", i, str[i]);
+		i++;
+	}
+}
 
 int main(int argc, char **argv, char *envp[])
 {
 	t_pipex	pipex;
 
 	if (argc != 5)
+	{
 		errors(ERR_ARG, argc);
+		return (1);
+	}
 	access_checks(&pipex, argv, argc);
 	if (pipe(pipex.tube) < 0)
 		errors(ERR_PIPE, argc);
-	//pipex.paths = paths(envp);
-	//pipex.cmd_paths = ft_split(pipex.paths, ":");
+	pipex.paths = paths(envp);
+	if (!pipex.paths)
+		errors(ERR_PATH, argc);
+	pipex.cmd_paths = ft_split(pipex.paths, ':');
+	if (!pipex.cmd_paths)
+		errors(ERR_PATH, argc);
+	//print(pipex.cmd_paths);
 	forking(&pipex, argv, envp, argc);
-	close_pipes(&pipex);
 	waitpid(pipex.pid1, NULL, 0);
 	waitpid(pipex.pid2, NULL, 0);
 	free_and_close(&pipex);
@@ -59,20 +78,37 @@ static void	access_checks(t_pipex *pipex, char **argv, int argc)
 
 static void	forking(t_pipex *pipex, char **argv, char *envp[], int argc)
 {
-	pipex->pid1 = fork();
+	/*pipex->pid1 = fork();
 	if (pipex->pid1 < 0)
 		errors(ERR_PIPE, argc);
 	else if (pipex->pid1 == 0)
-		first_child(pipex, argv, envp);
+	{
+		write(STDOUT_FILENO, "HOLA PRIMERO\n", 13);
+		first_child(pipex, argv, envp, argc);
+	}
 	pipex->pid2 = fork();
 	if (pipex->pid2 < 0)
 		errors(ERR_PIPE, argc);
 	else if (pipex->pid2 == 0)
-		second_child(pipex, argv, envp);
+	{
+		write(STDOUT_FILENO, "HOLA SEGUNDO\n", 13);*/
+		second_child(pipex, argv, envp, argc);
+	//}
 }
 
-static void	close_pipes(t_pipex *pipex)
+static void	free_and_close(t_pipex *pipex)
 {
+	int	i;
+
+	i = 0;
+	while (pipex->cmd_paths[i])
+	{
+		free(pipex->cmd_paths[i]);
+		i++;
+	}
+	free(pipex->cmd_paths);
 	close(pipex->tube[0]);
 	close(pipex->tube[1]);
+	close(pipex->infile);
+	close(pipex->outfile);
 }
