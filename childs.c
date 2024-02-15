@@ -54,16 +54,21 @@ static char	*get_command(t_pipex *pipex, int argc)
 }
 
 
-void	first_child(t_pipex *pipex, char **argv, char *envp[], int argc)
+void	first_child(t_pipex *pipex, char *argv[], char *envp[], int argc)
 {
-	if (0 > close(pipex->tube[0]))
-		errors(ERR_CLS, argc);
+	//printf("%i\n%i\n%i\n%i\n", pipex->tube[0], pipex->tube[1], pipex->infile, pipex->outfile);
+	
+	/*if (0 > close(fd[0]))
+		errors(ERR_CLS, argc);*/
 	if (0 > dup2(pipex->tube[1], STDOUT_FILENO))
 		errors(ERR_DUP2, argc);
 	if (0 > close(pipex->tube[1]))
 		errors(ERR_CLS, argc);
 	if (0 > dup2(pipex->infile, STDIN_FILENO))
-		errors(ERR_DUP2, argc);	
+		errors(ERR_DUP2, argc);
+	if (0 > close(pipex->infile))
+		errors(ERR_CLS, argc);
+	//printf("%i\n%i\n%i\n%i\n", pipex->tube[0], pipex->tube[1], pipex->infile, pipex->outfile);	
 	pipex->cmd_args = ft_split(argv[2], ' ');
 	pipex->cmd = get_command(pipex, argc);
 	if (!pipex->cmd)
@@ -71,6 +76,7 @@ void	first_child(t_pipex *pipex, char **argv, char *envp[], int argc)
 		free_childs(pipex);
 		errors(ERR_CMD, argc);
 	}
+	//write(STDOUT_FILENO, "datos en el pipe\n", 17);
 	if (0 > execve(pipex->cmd, pipex->cmd_args, envp))
 	{
 		free_childs(pipex);
@@ -78,16 +84,20 @@ void	first_child(t_pipex *pipex, char **argv, char *envp[], int argc)
 	}
 }
 
-void	second_child(t_pipex *pipex, char **argv, char *envp[], int argc)
+void	second_child(t_pipex *pipex, char *argv[], char *envp[], int argc)
 {
-	if (0 > close(pipex->tube[1]))
-		errors(ERR_CLS, argc);
+	//char	buffer[20];
+
+	//printf("%i\n%i\n%i\n%i\n", pipex->tube[0], pipex->tube[1], pipex->infile, pipex->outfile);
+	/*if (0 > close(fd[1]))
+		errors(ERR_CLS, argc);*/
 	if (0 > dup2(pipex->tube[0], STDIN_FILENO))
 		errors(ERR_DUP2, argc);
 	if (0 > close(pipex->tube[0]))
 		errors(ERR_CLS, argc);
 	if (0 > dup2(pipex->outfile, STDOUT_FILENO))
 		errors(ERR_DUP2, argc);
+	//printf("%i\n%i\n%i\n%i\n", pipex->tube[0], pipex->tube[1], pipex->infile, pipex->outfile);
 	pipex->cmd_args = ft_split(argv[3], ' ');
 	pipex->cmd = get_command(pipex, argc);
 	if (!pipex->cmd)
@@ -95,9 +105,23 @@ void	second_child(t_pipex *pipex, char **argv, char *envp[], int argc)
 		free_childs(pipex);
 		errors(ERR_CMD, argc);
 	}
+	/*ssize_t	byteread = read(STDIN_FILENO, buffer, 17);
+	if (byteread == -1) {
+        perror("Error al leer desde el pipe");
+        exit(EXIT_FAILURE);
+	}
+	write(1, buffer, 17);
+	write(STDOUT_FILENO, "escribo en outfile\n", 19);*/
 	if (0 > execve(pipex->cmd, pipex->cmd_args, envp))
 	{
 		free_childs(pipex);
 		errors(ERR_EXC, argc);
 	}
+	/*char	*av[] = {"wc", "-l", NULL};
+	(void)envp;
+	if (0 > execve("/usr/bin/wc", av, NULL))
+	{
+		free_childs(pipex);
+		errors(ERR_EXC, argc);
+	}*/
 }
